@@ -1,0 +1,35 @@
+name: Build APK
+
+# Builds the Android APK of the Cave Crawler port on GitHub (nothing to install locally).
+# Not yet run by the author: if a step fails, open the log and send it back.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "11"
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Prepare the Godot 3.5 Android project
+        run: python3 tools/prepare_project.py
+
+      - name: Build
+        working-directory: build/android-project
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CaveCrawler-apk
+          path: build/android-project/build/outputs/apk/release/*.apk
